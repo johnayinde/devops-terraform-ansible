@@ -1,0 +1,6 @@
+- name: Setup and Deploy Application
+  hosts: all
+  become: true
+  roles:
+    - dependencies
+    - deployment

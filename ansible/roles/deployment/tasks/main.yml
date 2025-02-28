@@ -1,0 +1,85 @@
+- name: Clone the repository
+  git:
+    repo: "https://github.com/johnayinde/DevOps-Stage-4.git"
+    dest: "/home/ubuntu/todo-app"
+    version: main
+    force: yes
+
+- name: Install Java
+  apt:
+    name: openjdk-17-jdk
+    state: present
+  become: yes
+
+- name: Set JAVA_HOME
+  lineinfile:
+    path: /etc/environment
+    line: "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64"
+    state: present
+  become: yes
+
+- name: Load JAVA_HOME into current session
+  shell: "export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64"
+  args:
+    executable: /bin/bash
+  changed_when: false
+
+- name: Create traefik directory if it doesn't exist
+  file:
+    path: "/home/ubuntu/todo-app/traefik"
+    state: directory
+    mode: "0755"
+  become: yes
+
+- name: Create and set permissions for acme.json
+  file:
+    path: "/home/ubuntu/todo-app/traefik/acme.json"
+    state: touch
+    mode: "0600"
+    owner: ubuntu
+    group: ubuntu
+  become: yes
+
+# - name: Update traefik.yml with SSL configuration (if file exists)
+#   blockinfile:
+#     path: "/home/ubuntu/todo-app/traefik/traefik.yml"
+#     marker: "# {mark} ANSIBLE MANAGED BLOCK - SSL CONFIG"
+#     block: |
+#       certificatesResolvers:
+#         myresolver:
+#           acme:
+#             email: lolaayinde@gmail.com
+#             storage: /acme.json
+#             tlsChallenge: {}
+#   become: yes
+
+# - name: Update docker-compose.yml to use SSL (if file exists)
+#   replace:
+#     path: "/home/ubuntu/todo-app/docker-compose.yml"
+#     regexp: 'traefik\.http\.routers\.([^.]+)\.entrypoints=web'
+#     replace: "traefik.http.routers.\\1.entrypoints=websecure\"\n      - \"traefik.http.routers.\\1.tls.certresolver=myresolver"
+#   become: yes
+#   ignore_errors: yes
+
+# - name: Ensure entrypoints are properly configured in traefik.yml
+#   blockinfile:
+#     path: "/home/ubuntu/todo-app/traefik/traefik.yml"
+#     marker: "# {mark} ANSIBLE MANAGED BLOCK - ENTRYPOINTS"
+#     block: |
+#       entryPoints:
+#         web:
+#           address: ":80"
+#           http:
+#             redirections:
+#               entryPoint:
+#                 to: websecure
+#                 scheme: https
+#         websecure:
+#           address: ":443"
+#   become: yes
+
+- name: Restart services with Docker Compose
+  command: >
+    docker-compose -f /home/ubuntu/todo-app/docker-compose.yml down &&
+    docker-compose -f /home/ubuntu/todo-app/docker-compose.yml up -d
+  become: yes
