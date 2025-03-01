@@ -40,44 +40,6 @@
     group: ubuntu
   become: yes
 
-# - name: Update traefik.yml with SSL configuration (if file exists)
-#   blockinfile:
-#     path: "/home/ubuntu/todo-app/traefik/traefik.yml"
-#     marker: "# {mark} ANSIBLE MANAGED BLOCK - SSL CONFIG"
-#     block: |
-#       certificatesResolvers:
-#         myresolver:
-#           acme:
-#             email: lolaayinde@gmail.com
-#             storage: /acme.json
-#             tlsChallenge: {}
-#   become: yes
-
-# - name: Update docker-compose.yml to use SSL (if file exists)
-#   replace:
-#     path: "/home/ubuntu/todo-app/docker-compose.yml"
-#     regexp: 'traefik\.http\.routers\.([^.]+)\.entrypoints=web'
-#     replace: "traefik.http.routers.\\1.entrypoints=websecure\"\n      - \"traefik.http.routers.\\1.tls.certresolver=myresolver"
-#   become: yes
-#   ignore_errors: yes
-
-# - name: Ensure entrypoints are properly configured in traefik.yml
-#   blockinfile:
-#     path: "/home/ubuntu/todo-app/traefik/traefik.yml"
-#     marker: "# {mark} ANSIBLE MANAGED BLOCK - ENTRYPOINTS"
-#     block: |
-#       entryPoints:
-#         web:
-#           address: ":80"
-#           http:
-#             redirections:
-#               entryPoint:
-#                 to: websecure
-#                 scheme: https
-#         websecure:
-#           address: ":443"
-#   become: yes
-
 - name: Restart services with Docker Compose
   command: >
     docker-compose -f /home/ubuntu/todo-app/docker-compose.yml down &&
